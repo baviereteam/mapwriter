@@ -9,8 +9,10 @@ import mapwriter.map.*;
 import mapwriter.overlay.OverlaySlime;
 import mapwriter.region.BlockColours;
 import mapwriter.region.RegionManager;
+import mapwriter.serverconnector.WebConnector;
 import mapwriter.tasks.CloseRegionManagerTask;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.server.integrated.IntegratedServer;
@@ -21,6 +23,8 @@ import net.minecraft.world.chunk.Chunk;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.http.client.methods.HttpPost;
 
 /*
 
@@ -137,6 +141,7 @@ public class Mw {
 	public final static String catWorld = "world";
 	public final static String catMarkers = "markers";
 	public final static String catOptions = "options";
+	public final static String catServer = "server";
 	public final static String worldDirConfigName = "mapwriter.cfg";
 	public final static String blockColourSaveFileName = "MapWriterBlockColours.txt";
 	public final static String blockColourOverridesFileName = "MapWriterBlockColourOverrides.txt";
@@ -151,6 +156,12 @@ public class Mw {
 	public RegionManager regionManager = null;
 	public ChunkManager chunkManager = null;
 	public Trail playerTrail = null;
+	
+	
+	// Server configuration
+	public int serverId = 0;
+	public String serverKey = "";
+	
 	
 	public static Mw instance;
 	
@@ -235,6 +246,18 @@ public class Mw {
 		
 		this.dimensionList.clear();
 		this.worldConfig.getIntList(catWorld, "dimensionList", this.dimensionList);
+		
+		WebConnector.getInstance().setHost(
+				this.worldConfig.getString("host", catServer, "", "Server host")
+		);
+		
+		WebConnector.getInstance().setPort(
+				this.worldConfig.getInt("port", catServer, 0, 0, 65535, "Server port")
+		);
+		
+		this.serverId = this.worldConfig.getInt("serverId", catServer, 0, 0, Integer.MAX_VALUE, "Server ID");
+		this.serverKey = this.worldConfig.getString("key", catServer, "", "Server access key");
+		
 		this.addDimension(0);
 		this.cleanDimensionList();
 	}
@@ -257,6 +280,16 @@ public class Mw {
 	
 	public void saveWorldConfig() {
 		this.worldConfig.setIntList(catWorld, "dimensionList", this.dimensionList);
+		
+		this.worldConfig.get(catServer, "host", "").set(
+			WebConnector.getInstance().getHost()
+		);
+		this.worldConfig.setInt(catServer, "port", 
+			WebConnector.getInstance().getPort()
+		);
+		this.worldConfig.setInt(catServer, "serverId", this.serverId);
+		this.worldConfig.get(catServer, "key", "").set(this.serverKey);
+		
 		this.worldConfig.save();
 	}
 	
@@ -674,7 +707,7 @@ public class Mw {
 				// earliest death marker added.
 				this.markerManager.delMarker(null, "playerDeaths");
 			}
-			this.markerManager.addMarker(MwUtil.getCurrentDateString(), "playerDeaths", this.playerXInt, this.playerYInt, this.playerZInt, this.playerDimension, 0xffff0000);
+			this.markerManager.addMarker(-1, MwUtil.getCurrentDateString(), "playerDeaths", this.playerXInt, this.playerYInt, this.playerZInt, this.playerDimension, 0xffff0000);
 			this.markerManager.setVisibleGroupName("playerDeaths");
 			this.markerManager.update();
 		}
@@ -736,6 +769,21 @@ public class Mw {
 			} else if (kb == MwKeyHandler.keyUndergroundMode) {
 				this.toggleUndergroundMode();
 			}
+			
+			else if (kb == MwKeyHandler.keyRemoteReload) {
+				//TODO: Fix this, it causes a concurrency problem
+				/*this.say("Reload remote markers...");
+				Mw.instance.markerManager.clearRemoteMarkers();
+				Mw.instance.markerManager.loadRemoteMarkers();*/
+			}
+		}
+	}
+    
+    // Speak to the console
+	public void say(String msg) {
+		EntityClientPlayerMP thePlayer = Minecraft.getMinecraft().thePlayer;
+		if (thePlayer != null) {
+			thePlayer.addChatMessage(new ChatComponentText("[MapWriterServer] " + msg));
 		}
 	}
 }

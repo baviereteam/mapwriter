@@ -3,11 +3,14 @@ package mapwriter.map;
 import java.util.ArrayList;
 import java.util.List;
 
+import mapwriter.Mw;
 import mapwriter.MwUtil;
 import mapwriter.forge.MwConfig;
 import mapwriter.map.mapmode.MapMode;
+import mapwriter.serverconnector.MarkerInterface;
 
 public class MarkerManager {
+	private MarkerInterface markerInterface = new MarkerInterface();
 	
 	public List<Marker> markerList = new ArrayList<Marker>();
 	public List<String> groupList = new ArrayList<String>();
@@ -42,20 +45,99 @@ public class MarkerManager {
 			}
 		}
 		
+		this.loadRemoteMarkers();
+		
 		this.update();
 	}
 	
+	public void clearRemoteMarkers() {
+		for(Marker m: this.markerList) {
+			if(m.isRemote()) {
+				this.markerList.remove(m);
+			}
+		}
+	}
+	public void loadRemoteMarkers() {
+		// Load remote markers
+		Mw.instance.say("Loading remote markers...");
+		try {
+			List<Marker> markers = markerInterface.list();
+			this.markerList.addAll(markers);
+		}
+		catch(Exception e) {
+			Mw.instance.say("Failed loading remote markers.");
+			Mw.instance.say(e.getMessage());
+			MwUtil.logException(e);
+		}
+	}
+	
 	public void save(MwConfig config, String category) {
-		config.get(category, "markerCount", 0).set(this.markerList.size());
 		config.get(category, "visibleGroup", "").set(this.visibleGroupName);
 		
-		int i = 0;
+		int localMarkerCount = 0;
 		for (Marker marker : this.markerList) {
-			String key = "marker" + i;
-			String value = this.markerToString(marker);
-			config.get(category, key, "").set(value);
-			i++;
+			// Is it a remote marker ?
+			if(marker.groupName.startsWith("auto")) {
+				// Don't save remote markers here, this would scramble concurrent modifications
+				//this.saveRemoteMarker(marker);
+			}
+			
+			else {
+				String key = "marker" + localMarkerCount;
+				String value = this.markerToString(marker);
+				config.get(category, key, "").set(value);
+				localMarkerCount++;
+			}
 		}
+		
+		config.get(category, "markerCount", 0).set(localMarkerCount);
+	}
+	
+	public Marker saveRemoteMarker(Marker marker) {
+		Mw.instance.say( String.format("Saving marker '%s'", marker.name) );
+		
+		// if the marker has an ID > -1 it exists already so edit it
+		if(marker.getId() > -1) {
+			try {
+				markerInterface.edit(
+					marker.getId(), 
+					marker.colour, 
+					marker.dimension, 
+					marker.groupName,
+					marker.name,
+					marker.x,
+					marker.y,
+					marker.z);
+			}
+			catch(Exception e) {
+				Mw.instance.say("Save failed.");
+				Mw.instance.say(e.getMessage());
+				MwUtil.logException(e);
+			}
+		}
+		
+		// No real ID, it's a new
+		else {
+			try {
+				int id = markerInterface.add(
+					marker.colour, 
+					marker.dimension, 
+					marker.groupName, 
+					marker.name, 
+					marker.x, 
+					marker.y, 
+					marker.z);
+				
+				marker.setId(id);
+			}
+			catch(Exception e) {
+				Mw.instance.say("Save failed.");
+				Mw.instance.say(e.getMessage());
+				MwUtil.logException(e);
+			}
+		}
+		
+		return marker;
 	}
 	
 	public void setVisibleGroupName(String groupName) {
@@ -115,13 +197,17 @@ public class MarkerManager {
 	}
 	
 	public void addMarker(Marker marker) {
+		// Save if remote
+		if(marker.groupName.startsWith("auto")) {
+			this.saveRemoteMarker(marker);
+		}
 		this.markerList.add(marker);
 	}
 	
-	public void addMarker(String name, String groupName, int x, int y, int z, int dimension, int colour) {
+	public void addMarker(int id, String name, String groupName, int x, int y, int z, int dimension, int colour) {
 		name = name.replace(":", "");
 		groupName = groupName.replace(":", "");
-		this.addMarker(new Marker(name, groupName, x, y, z, dimension, colour));
+		this.addMarker(new Marker(id, name, groupName, x, y, z, dimension, colour));
 	}
 	
 	// returns true if the marker exists in the arraylist.

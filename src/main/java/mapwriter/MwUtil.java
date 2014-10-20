@@ -39,6 +39,10 @@ public class MwUtil {
 		logInfo(String.format(s, args));
 	}
 	
+	public static void logException(Exception e) {
+		MwForge.logger.catching(e);
+	}
+	
 	public static String mungeString(String s) {
 		s = s.replace('.', '_');
 		s = s.replace('-', '_');

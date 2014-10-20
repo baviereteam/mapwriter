@@ -21,6 +21,8 @@ public class MwKeyHandler {
 	public static KeyBinding keyUndergroundMode = new KeyBinding("key.mw_underground_mode", Keyboard.KEY_U, "Mapwriter");
 	//public static KeyBinding keyQuickLargeMap = new KeyBinding("key.mw_quick_large_map", Keyboard.KEY_NONE);
 	
+	public static KeyBinding keyRemoteReload = new KeyBinding("key.remoteReload", Keyboard.KEY_G, "Mapwriter");
+	
 	public MwKeyHandler(){
         ClientRegistry.registerKeyBinding(keyMapGui);
         ClientRegistry.registerKeyBinding(keyNewMarker);
@@ -30,6 +32,7 @@ public class MwKeyHandler {
         ClientRegistry.registerKeyBinding(keyZoomIn);
         ClientRegistry.registerKeyBinding(keyZoomOut);
         ClientRegistry.registerKeyBinding(keyUndergroundMode);
+        ClientRegistry.registerKeyBinding(keyRemoteReload);
 	}
 
     @SubscribeEvent
@@ -65,6 +68,11 @@ public class MwKeyHandler {
         if(keyUndergroundMode.getIsKeyPressed()){
             KeyBinding.setKeyBindState(keyUndergroundMode.getKeyCode(), false);
             Mw.instance.onKeyDown(keyUndergroundMode);
+        }
+        
+        if(keyRemoteReload.getIsKeyPressed()) {
+        	KeyBinding.setKeyBindState(keyUndergroundMode.getKeyCode(), false);
+            Mw.instance.onKeyDown(keyRemoteReload);
         }
     }
 }

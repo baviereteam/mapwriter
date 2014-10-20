@@ -6,8 +6,9 @@ import mapwriter.Render;
 import mapwriter.map.mapmode.MapMode;
 
 public class Marker {
-	public final String name;
-	public final String groupName;
+	private int id = -1;	// ID of local markers
+	public String name;
+	public String groupName;
 	public int x;
 	public int y;
 	public int z;
@@ -18,11 +19,27 @@ public class Marker {
 	
 	private static int[] colours = new int[] {
     		0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff,
-    		0xff8000, 0x8000ff};
+    		0xff8000, 0x8000ff,
+    		0x811453, 	//prune
+    		0x048B9A, 	// bleu canard
+    		0x955628, 	// noisette
+    		0xFC5D5D, 	// nacarat
+    		0xFFFFFF, 	// blanc
+    		0xBBD2E1, 	// gris fumée
+    		0xAFAFAF, 	// gris acier
+	};
+	
 	// static so that current index is shared between all markers
     private static int colourIndex = 0;
 	
+    // Criteria for remote marker
+    public boolean isRemote() {
+    	return this.groupName.startsWith("auto");
+    }
+    
+    
 	public Marker(String name, String groupName, int x, int y, int z, int dimension, int colour) {
+		this.id = -1;
 		this.name = name;
 		this.x = x;
 		this.y = y;
@@ -30,6 +47,24 @@ public class Marker {
 		this.dimension = dimension;
 		this.colour = colour;
 		this.groupName = groupName;
+	}
+	
+	public Marker(int id, String name, String groupName, int x, int y, int z, int dimension, int colour) {
+		this.id = id;
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.dimension = dimension;
+		this.colour = colour;
+		this.groupName = groupName;
+	}
+	
+	public int getId() {
+		return this.id;
+	}
+	public void setId(int id) {
+		this.id = id;
 	}
 	
 	public String getString() {

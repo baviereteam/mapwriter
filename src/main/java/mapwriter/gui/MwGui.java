@@ -12,6 +12,7 @@ import mapwriter.map.MapView;
 import mapwriter.map.Marker;
 import mapwriter.map.mapmode.FullScreenMapMode;
 import mapwriter.map.mapmode.MapMode;
+import mapwriter.serverconnector.WebConnector;
 import mapwriter.tasks.MergeTask;
 import mapwriter.tasks.RebuildRegionsTask;
 import net.minecraft.client.gui.GuiButton;
@@ -280,6 +281,19 @@ public class MwGui extends GuiScreen {
 			this.exitGui();
 			break;
 			
+		// Paramètres de connexion au serveur
+		case Keyboard.KEY_O:
+			this.mc.displayGuiScreen(
+    			new MwGuiServerDialog(
+    				this,
+    				WebConnector.getInstance().getHost(),
+    				WebConnector.getInstance().getPort(),
+    				Mw.instance.serverId,
+    				Mw.instance.serverKey
+    			)
+    		);
+			break;
+			
 		//case Keyboard.KEY_9:
 		//	MwUtil.log("refreshing maptexture");
 		//	this.mw.mapTexture.updateTexture();
@@ -520,7 +534,8 @@ public class MwGui extends GuiScreen {
     			"  T\n" +
     			"  P\n" +
     			"  R\n" +
-    			"  U\n\n" +
+    			"  U\n" +
+    			"  O\n\n" +
     			"Left click drag or arrow keys pan the map.\n" +
     			"Mouse wheel or Page Up/Down zooms map.\n" +
     			"Right click map to create a new marker.\n" +
@@ -538,7 +553,8 @@ public class MwGui extends GuiScreen {
     			"| Teleport to cursor or selected marker\n" +
     			"| Save PNG of visible map area\n" +
     			"| Regenerate visible map area from region files\n" +
-    			"| Underground map mode\n",
+    			"| Underground map mode\n" +
+    			"| Set server options\n",
     			75, 42, this.width - 90, 0xffffff);
     }
     

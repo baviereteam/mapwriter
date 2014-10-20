@@ -38,7 +38,7 @@ public class MwGuiTextDialog extends GuiScreen {
     			textDialogY,
     			w - 10,
     			12);
-		this.textField.setMaxStringLength(32);
+		this.textField.setMaxStringLength(50);
 		this.textField.setFocused(true);
 		this.textField.setCanLoseFocus(false);
 		//this.textField.setEnableBackgroundDrawing(false);

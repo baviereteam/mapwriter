@@ -17,7 +17,9 @@ public class MwGuiMarkerDialog extends MwGuiTextDialog {
     private int markerZ = 0;
     private int state = 0;
     private int dimension = 0;
+    private int markerId = -1;
     
+    // New Marker ctor
     public MwGuiMarkerDialog(GuiScreen parentScreen, MarkerManager markerManager, String markerName, String markerGroup, int x, int y, int z, int dimension) {
         super(parentScreen, "Marker Name:", markerName, "marker must have a name");
 		this.markerManager = markerManager;
@@ -30,6 +32,7 @@ public class MwGuiMarkerDialog extends MwGuiTextDialog {
 		this.dimension = dimension;
     }
     
+    // Edit Marker ctor
     public MwGuiMarkerDialog(GuiScreen parentScreen, MarkerManager markerManager, Marker editingMarker) {
         super(parentScreen, "Edit Marker Name:", editingMarker.name, "marker must have a name");
         this.markerManager = markerManager;
@@ -40,6 +43,7 @@ public class MwGuiMarkerDialog extends MwGuiTextDialog {
 		this.markerY = editingMarker.y;
 		this.markerZ = editingMarker.z;
 		this.dimension = editingMarker.dimension;
+		this.markerId = editingMarker.getId();
     }
     	
 	@Override
@@ -92,7 +96,7 @@ public class MwGuiMarkerDialog extends MwGuiTextDialog {
 	    			this.markerManager.delMarker(this.editingMarker);
 	    			this.editingMarker = null;
 	    		}
-	    		this.markerManager.addMarker(this.markerName, this.markerGroup,
+	    		this.markerManager.addMarker(this.markerId, this.markerName, this.markerGroup,
 						this.markerX, this.markerY, this.markerZ,
 						this.dimension, colour);
 				this.markerManager.setVisibleGroupName(this.markerGroup);
